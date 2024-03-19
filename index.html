@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload CSV File</title>
+    <script>
+        function findCombinationsSumTo100(numbers) {
+            const validCombinations = [];
+            const combinationSize = 4;
+            const targetSum = 100.00;
+
+            function* generateCombinations(arr, len) {
+                function* doGenerateCombinations(prefix, arr, len) {
+                    if (len === 0) {
+                        yield prefix;
+                        return;
+                    }
+                    for (let i = 0; i < arr.length; i++) {
+                        yield* doGenerateCombinations(prefix.concat(arr[i]), arr.slice(i + 1), len - 1);
+                    }
+                }
+                yield* doGenerateCombinations([], arr, len);
+            }
+
+            for (let combo of generateCombinations(numbers, combinationSize)) {
+                const sum = combo.reduce((acc, val) => acc + val, 0);
+                if (Math.round(sum * 100) / 100 === targetSum) {
+                    validCombinations.push(combo);
+                }
+            }
+
+            return validCombinations;
+        }
+
+        function processFile(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const rows = content.trim().split("\n");
+                const allNumbers = [];
+                rows.forEach(row => {
+                    const numbers = row.split(",").map(Number);
+                    allNumbers.push(...numbers);
+                });
+
+                const validSets = findCombinationsSumTo100(allNumbers);
+                document.getElementById("output").innerHTML = validSets.map(set => `<p>${set.join(", ")}</p>`).join("");
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</head>
+<body>
+    <h2>Upload CSV File</h2>
+    <input type="file" accept=".csv" onchange="processFile(event)">
+    <div id="output"></div>
+</body>
+</html>
